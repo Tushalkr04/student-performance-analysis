@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Import marks from CSV</h1>
+<form method="post" enctype="multipart/form-data" class="card form">
+  <p>Required columns: <code>roll_no, name, course, subject, marks</code> (one row per subject).
+     A sample file, <code>sample_data.csv</code>, is in the project folder.</p>
+  <input type="file" name="file" accept=".csv" required>
+  <button>Upload</button>
+</form>
+{% endblock %}

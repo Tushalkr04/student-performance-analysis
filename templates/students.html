@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Students</h1>
+<form method="get" class="inline">
+  <input name="q" value="{{ q }}" placeholder="Search by name or roll no">
+  <button>Search</button>
+</form>
+<div class="card">
+<table>
+  <tr><th>Roll No</th><th>Name</th><th>Course</th><th>Average</th><th>Grade</th><th>Result</th><th></th></tr>
+  {% for s in students %}
+  <tr><td>{{ s.roll_no }}</td><td>{{ s.name }}</td><td>{{ s.course }}</td>
+    <td>{{ s.average }}</td><td>{{ s.grade }}</td>
+    <td class="{{ 'pass' if s.result=='Pass' else 'fail' if s.result=='Fail' else '' }}">{{ s.result }}</td>
+    <td><a href="{{ url_for('student_detail', sid=s.id) }}">View</a></td></tr>
+  {% else %}<tr><td colspan="7">No students found.</td></tr>{% endfor %}
+</table>
+</div>
+{% endblock %}

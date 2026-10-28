@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Class Dashboard</h1>
+{% if s.empty %}
+  <div class="card">
+    <p>No data yet. <a href="{{ url_for('upload') }}">Import <code>sample_data.csv</code></a>
+       or <a href="{{ url_for('add_student') }}">add a student</a> to get started.</p>
+  </div>
+{% else %}
+<div class="stats">
+  <div class="stat"><span>{{ s.total_students }}</span>Students</div>
+  <div class="stat"><span>{{ s.class_average }}</span>Class average</div>
+  <div class="stat"><span>{{ s.pass_percentage }}%</span>Pass rate</div>
+  <div class="stat"><span>{{ s.highest_avg }}</span>Top average</div>
+</div>
+<p class="muted">Pass rule: at least {{ pass_mark }} marks in every subject.
+  Topper: <b>{{ s.topper }}</b> · Easiest subject: <b>{{ s.easiest_subject }}</b> ·
+  Hardest subject: <b>{{ s.hardest_subject }}</b></p>
+
+<div class="grid2">
+  <div class="card"><h3>Subject-wise average</h3><canvas id="subjChart"></canvas></div>
+  <div class="card"><h3>Grade distribution</h3><canvas id="gradeChart"></canvas></div>
+  <div class="card"><h3>Subject pass percentage</h3><canvas id="passChart"></canvas></div>
+  <div class="card"><h3>Top 5 students</h3>
+    <table><tr><th>Rank</th><th>Roll No</th><th>Name</th><th>Avg</th><th>Grade</th></tr>
+    {% for t in s.top5 %}<tr><td>{{ t.rank }}</td><td>{{ t.roll_no }}</td><td>{{ t.name }}</td>
+      <td>{{ t.average }}</td><td>{{ t.grade }}</td></tr>{% endfor %}</table>
+  </div>
+</div>
+
+<div class="card"><h3>⚠ Students needing attention</h3>
+  {% if s.at_risk %}
+  <table><tr><th>Roll No</th><th>Name</th><th>Average</th><th>Lowest mark</th></tr>
+  {% for t in s.at_risk %}<tr><td>{{ t.roll_no }}</td><td>{{ t.name }}</td>
+    <td>{{ t.average }}</td><td>{{ t.lowest }}</td></tr>{% endfor %}</table>
+  {% else %}<p>Everyone is doing well. 🎉</p>{% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const S = {{ s | tojson }};
+new Chart(document.getElementById('subjChart'), {type:'bar',
+  data:{labels:S.subjects, datasets:[{label:'Average',data:S.subject_avg,backgroundColor:'#4f46e5'}]},
+  options:{scales:{y:{min:0,max:100}}}});
+new Chart(document.getElementById('gradeChart'), {type:'doughnut',
+  data:{labels:S.grades, datasets:[{data:S.grade_counts,
+  backgroundColor:['#16a34a','#22c55e','#84cc16','#eab308','#f97316','#fb923c','#dc2626']}]}});
+new Chart(document.getElementById('passChart'), {type:'bar',
+  data:{labels:S.subjects, datasets:[{label:'Pass %',data:S.subject_pass_pct,backgroundColor:'#0ea5e9'}]},
+  options:{indexAxis:'y',scales:{x:{min:0,max:100}}}});
+</script>
+{% endif %}
+{% endblock %}

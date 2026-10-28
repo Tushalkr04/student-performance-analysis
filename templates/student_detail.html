@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ stu.name }} <small>({{ stu.roll_no }} · {{ stu.course }})</small></h1>
+
+{% if r %}
+<div class="stats">
+  <div class="stat"><span>{{ r.average }}</span>Average</div>
+  <div class="stat"><span>{{ r.rank }}/{{ r.total }}</span>Class rank</div>
+  <div class="stat"><span>{{ r.grade }}</span>Grade</div>
+  <div class="stat"><span class="{{ 'pass' if r.result=='Pass' else 'fail' }}">{{ r.result }}</span>Result</div>
+</div>
+<p class="muted">Strongest subject: <b>{{ r.best }}</b> · Needs most work: <b>{{ r.weak }}</b></p>
+<div class="card"><canvas id="cmp" height="110"></canvas></div>
+<div class="card">
+<table>
+  <tr><th>Subject</th><th>Marks</th><th>Grade</th><th>Class avg</th><th>vs class</th><th></th></tr>
+  {% for x in r.rows %}
+  <tr><td>{{ x.subject }}</td>
+    <td class="{{ 'fail' if x.marks < pass_mark else '' }}">{{ x.marks|round(1) }}</td>
+    <td>{{ x.grade }}</td><td>{{ x.class_avg }}</td>
+    <td class="{{ 'pass' if x.diff >= 0 else 'fail' }}">{{ '%+.1f'|format(x.diff) }}</td>
+    <td><form method="post" action="{{ url_for('delete_marks', sid=stu.id, subject=x.subject) }}">
+      <button class="link">remove</button></form></td></tr>
+  {% endfor %}
+</table></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const R = {{ r.rows | tojson }};
+new Chart(document.getElementById('cmp'), {type:'bar',
+  data:{labels:R.map(x=>x.subject), datasets:[
+    {label:'Student',data:R.map(x=>x.marks),backgroundColor:'#4f46e5'},
+    {label:'Class average',data:R.map(x=>x.class_avg),backgroundColor:'#cbd5e1'}]},
+  options:{scales:{y:{min:0,max:100}}}});
+</script>
+{% else %}<div class="card"><p>No marks recorded yet.</p></div>{% endif %}
+
+<form method="post" class="card form inline">
+  <h3>Add / update marks</h3>
+  <input name="subject" placeholder="Subject" required>
+  <input name="marks" type="number" step="0.5" min="0" max="100" placeholder="Marks (0-100)" required>
+  <button>Save</button>
+</form>
+
+<form method="post" action="{{ url_for('delete_student', sid=stu.id) }}"
+      onsubmit="return confirm('Delete this student and all marks?')">
+  <button class="danger">Delete student</button>
+</form>
+{% endblock %}
